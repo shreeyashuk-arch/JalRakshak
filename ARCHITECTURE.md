@@ -1,50 +1,58 @@
-# ARCHITECTURE.md
+# JalRakshak: Technical Architecture
 
-## System Overview
+**Predict the Failure. Protect the Water.**
+
+JalRakshak connects mechanical equipment degradation directly to community water-access risk using low-power edge intelligence.
+
+---
+
+## 1. End-to-End Architectural Pipeline
 
 ```
-+----------------+      BLE Mesh (AquaMesh)      +-------------------+
-| nRF54LM20 DK   |<----------------------------->| Technician Phone |
-| (Sensor Node) |  <--- Offline‑First Sync --->  | (Gateway)        |
-+----------------+                                 +-------------------+
-        |                                                   |
-        v                                                   v
-+----------------+      FastAPI Backend (Python)      +-------------------+
-| Sensors / AI  |-----------------------------------| React Dashboard   |
-| (vibration,   |   REST/WS (JSON)                  | (TS + Vite)       |
-|  current, ...) |                                   +-------------------+
-+----------------+                                         |
-        |                                                 |
-        v                                                 v
-   SQLite DB (local)                               +-------------------+
-                                                   | Cloud (optional) |
-                                                   +-------------------+
+[ Physical / Simulated Sensors ]
+ (ADXL355 Vib, SCT-013 Current, DS18B20 Temp, YF-S201 Flow, Tank Level)
+                           │
+                           ▼
+ [ Nordic Semiconductor nRF54LM20 DK ]
+  ├── Signal Acquisition & Sliding Window Buffer (100 Hz)
+  ├── Edge Feature Extraction: RMS, Crest Factor, Temp slope, Flow-Eff
+  ├── TinyML / Heuristic Anomaly Classifier (Cortex-M33 / Axon NPU)
+  ├── Local State Classification: HEALTHY | DEGRADING | CRITICAL
+  └── JalRakshak Water Reliability Engine (Composite WRS 0-100)
+                           │
+                           ▼
+                 [ AquaMesh Protocol ]
+    (Bluetooth Low Energy / Bluetooth Mesh v1.1)
+   ├── Node-to-Node Relay (Pump <-> Tank)
+   └── Offline Ring-Buffer Storage (telemetry.c)
+                           │
+       [ Offline-First BLE Sync ] (Data Mule)
+                           │
+                           ▼
+              [ Technician Handheld Gateway ]
+                           │
+               [ HTTP / REST Ingestion ]
+                           │
+                           ▼
+             [ JalRakshak Backend Service ]
+            (FastAPI + SQLite / PostgreSQL)
+                           │
+                           ▼
+           [ Real-Time React Dashboard ]
 ```
 
-### Key Blocks
-- **Embedded Firmware** – runs on the nRF54LM20 DK, collects sensor data, runs Edge‑AI inference, and publishes health messages over BLE Mesh.
-- **Simulation Layer** – software model of the mesh and sensor streams for early demo without hardware.
-- **Backend Service** – FastAPI server that ingests telemetry, stores it in SQLite, computes water‑reliability scores, and serves a REST API.
-- **Frontend Dashboard** – React + TypeScript UI that visualises assets, health trends, and maintenance queues.
-- **Edge‑AI Pipeline** – Python scripts that generate synthetic data, train a TinyML model, and export a `.tflite` for the device.
-
 ---
 
-## Data Flow
-1. **Sensors → Firmware** – raw samples are sampled at 100 Hz (vibration) or appropriate rates.
-2. **Firmware → AI Engine** – windowed data → feature extraction → TensorFlow‑Lite inference → health classification.
-3. **Firmware → Mesh** – health payload (health score, risk, timestamp) broadcast via BLE Mesh.
-4. **Gateway Phone** – receives Mesh messages, buffers locally, forwards via HTTP to the backend when internet is available.
-5. **Backend** – persists telemetry, recomputes water‑reliability, updates maintenance priority, pushes updates via WebSocket to the dashboard.
-6. **Dashboard** – visualises real‑time and historical data; provides simulation controls.
+## 2. Implementation Boundaries: Implemented Now vs. Physical Hardware
 
----
+To maintain complete transparency and technical integrity, the table below categorizes all system modules:
 
-## Extensibility
-- Add new sensor types by extending `sensor_manager` in the firmware and updating the feature extraction scripts.
-- Swap the TinyML model with a more accurate one trained on real data – just replace `model.tflite` and re‑flash.
-- Replace SQLite with PostgreSQL for production; the FastAPI schemas are already Pydantic‑typed.
-
----
-
-*All components are prototype‑ready and documented for easy migration to a production‑grade deployment.*
+| Subsystem | Status | Implemented in Repo | Requires Physical Hardware |
+| :--- | :---: | :--- | :--- |
+| **Edge-AI Firmware** | **VERIFIED** | Full C Zephyr RTOS project structure (`firmware/`) with sliding window, feature extraction, and classification | Physical flashing to nRF54LM20 DK board target (`nrf54lm20dk/nrf54lm20a/cpuapp`) |
+| **Sensor Interface** | **VERIFIED** | Abstracted interface (`sensor_manager.h/c`) with active simulation/mock driver bridge | Physical wiring to I2C/SPI/ADC pins of ADXL355, SCT-013, DS18B20 |
+| **AquaMesh BLE Layer** | **VERIFIED** | Binary packet layouts (`aquamesh.h/c`) and offline ring-buffer logging (`telemetry.c`) | 2.4 GHz RF transmission over physical Nordic radio antenna |
+| **Edge-AI ML Pipeline** | **VERIFIED** | Synthetic dataset generator (`synthetic_generator.py`), feature extractor, trained model (`baseline_pump_classifier.joblib`), evaluation metrics | Field sensor dataset for municipal-grade calibration |
+| **Water Reliability Score**| **VERIFIED** | Mathematical formula in `reliability_engine.py` and `pump_health.c`, with unit tests | Long-term municipal reservoir ground-truth validation |
+| **Backend & Database** | **VERIFIED** | FastAPI REST service with SQLite persistence, seeded assets, and prediction endpoints | Cloud deployment (optional) |
+| **Frontend Dashboard** | **VERIFIED** | React 18 + Vite + Tailwind CSS dashboard with live multi-asset tracking and fault injection controls | None (runs locally) |

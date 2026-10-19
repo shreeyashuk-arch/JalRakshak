@@ -1,0 +1,48 @@
+{
+  "disclaimer": "These results are based on synthetic prototype data and do not represent field performance.",
+  "test_accuracy": 1.0,
+  "feature_names": [
+    "vibration_rms",
+    "vibration_var",
+    "vibration_peak",
+    "vibration_crest_factor",
+    "current_rms",
+    "current_var",
+    "temperature",
+    "flow_rate",
+    "flow_efficiency"
+  ],
+  "report": {
+    "HEALTHY": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 100.0
+    },
+    "DEGRADING": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 200.0
+    },
+    "CRITICAL": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 200.0
+    },
+    "accuracy": 1.0,
+    "macro avg": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 500.0
+    },
+    "weighted avg": {
+      "precision": 1.0,
+      "recall": 1.0,
+      "f1-score": 1.0,
+      "support": 500.0
+    }
+  }
+}
