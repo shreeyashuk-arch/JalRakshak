@@ -10,7 +10,7 @@
 
 | Item | Component / Model | Quantity | Purpose / Role in Architecture | Status | Requirement |
 | :---: | :--- | :---: | :--- | :---: | :---: |
-| **1** | **Nordic Semiconductor nRF54LM20 DK** | 1 | **Central Edge-AI Controller & AquaMesh Node:** High-performance ARM Cortex-M33 application core with hardware FPU and dedicated Axon NPU target (`nrf54lm20b`). Runs on-chip time-series signal windowing, feature extraction, TinyML health inference, and Bluetooth Mesh 2.4 GHz communications. | **Selected / Primary Platform** | **Required** |
+| **1** | **Nordic Semiconductor nRF54LM20 DK** | 1 | **Central Edge-AI Controller & AquaMesh Node:** High-performance ARM Cortex-M33 application core with hardware FPU and dedicated Axon NPU target. *Note: The nRF54LM20 DK supports the nRF54LM20A and nRF54LM20B. JalRakshak targets the nRF54LM20B configuration (`nrf54lm20dk/nrf54lm20b/cpuapp`) for Edge AI development using its integrated Axon NPU.* Runs on-chip time-series signal windowing, feature extraction, TinyML health inference, and Bluetooth Mesh 2.4 GHz communications. | Planned / Application Platform | **Required** |
 
 ---
 
