@@ -1,0 +1,23 @@
+# Dependency directories
+node_modules/
+frontend/dist/
+backend/.venv/
+
+# Build artifacts
+build/
+*.o
+*.obj
+*.elf
+*.bin
+
+# IDE / editor files
+.vscode/
+.idea/
+*.swp
+
+# Generated files
+*.pyc
+__pycache__/
+
+# Local configuration
+.env
